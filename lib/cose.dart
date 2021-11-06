@@ -105,7 +105,7 @@ class Cose {
     final sigStructureBytes = sigStructure.output.getData();
 
     bool verified = false;
-    if (publicKey is! EcPublicKey && -7 != alg) {
+    if (publicKey is! EcPublicKey || -7 != alg) {
       throw CoseException(CoseErrorCode.unsupportedAlgorithm);
     }
 
