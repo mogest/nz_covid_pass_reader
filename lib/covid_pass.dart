@@ -2,6 +2,7 @@ import 'package:nz_covid_pass_reader/cose.dart';
 import 'package:nz_covid_pass_reader/did_client.dart';
 import 'package:nz_covid_pass_reader/exceptions.dart';
 import 'package:base32/base32.dart';
+import 'dart:typed_data';
 
 class CovidPass {
   String givenName;
@@ -26,7 +27,7 @@ class CovidPass {
       throw CovidPassException(CovidPassErrorCode.invalidUrl);
     }
 
-    final data = base32.decode(encodedData);
+    final data = _base32decode(encodedData);
     final Cose cose = await decode(data, didClient, allowTestIssuers);
 
     final vc = cose.payload["vc"];
@@ -98,5 +99,17 @@ class CovidPass {
     cose.verify(jwk); // throws if validation fails
 
     return cose;
+  }
+
+  static Uint8List _base32decode(String encodedData) {
+    try {
+      final remainder = encodedData.length % 8;
+      final paddingRequired = remainder == 0 ? 0 : 8 - remainder;
+      final padding = "=" * paddingRequired;
+      final paddedData = encodedData + padding;
+      return base32.decode(paddedData);
+    } on FormatException {
+      throw CovidPassException(CovidPassErrorCode.invalidUrl);
+    }
   }
 }
